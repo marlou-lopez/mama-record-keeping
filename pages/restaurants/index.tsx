@@ -3,9 +3,7 @@ import { useUser } from '@supabase/auth-helpers-react';
 import { User } from '@supabase/supabase-js';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
-import Router from 'next/router';
-import { NextPage } from 'next/types';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import BigMenuLink from '../../components/BigMenuLink';
 import Layout from '../../layout/layout';
 import { NextPageWithLayout } from '../_app';
@@ -47,8 +45,6 @@ const addRestaurant = async ({
 };
 
 const Restaurants: NextPageWithLayout = () => {
-  // const [restaurants, setRestaurants] = useState<Restaurant[] | null>([]);
-  // const { user, signOut } = useAuth();
   const { user, isLoading } = useUser();
   const queryClient = useQueryClient();
   const [name, setName] = useState<string>('');
@@ -96,33 +92,18 @@ const Restaurants: NextPageWithLayout = () => {
     });
   };
 
-  // const handleSignout = async () => {
-  //   await supabaseClient.auth.signOut();
-  // };
-
-  // useEffect(() => {
-  //   if (!user && !isLoading) {
-  //     console.log("pumasok");
-  //     Router.push('/');
-  //   }
-  // }, [user, isLoading]);
-
   return (
     <>
-      {/* <div className="p-4 z-10 border-b flex items-center justify-between"> */}
-      {/*   <Link href="/"> */}
-      {/*     <a>Back</a> */}
-      {/*   </Link> */}
-      {/*   <button className="p-2 border-2" onClick={handleSignout}> */}
-      {/*     Logout */}
-      {/*   </button> */}
-      {/* </div> */}
       <div className="flex flex-col items-center flex-grow">
         {data &&
           data.length > 0 &&
           data.map((restaurant) => {
             return (
-              <Link href={`restaurants/${restaurant.id}`} key={restaurant.id} passHref>
+              <Link
+                href={`restaurants/${restaurant.id}`}
+                key={restaurant.id}
+                passHref
+              >
                 <BigMenuLink size="medium">{restaurant.name}</BigMenuLink>
               </Link>
             );
@@ -173,11 +154,7 @@ const Restaurants: NextPageWithLayout = () => {
 };
 
 Restaurants.getLayout = function getLayout(page: React.ReactElement) {
-  return (
-    <Layout>
-      {page}
-    </Layout>
-  )
-}
+  return <Layout>{page}</Layout>;
+};
 
 export default Restaurants;

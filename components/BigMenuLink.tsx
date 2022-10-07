@@ -13,7 +13,7 @@ const BigMenuLink = React.forwardRef<HTMLAnchorElement, BigMenuLink>(
       <a
         {...props}
         ref={ref}
-        className={`bg-blue-600 w-80 m-2 flex items-center justify-center text-3xl text-white rounded-md font-medium ${
+        className={`bg-cyan-600 w-80 m-2 flex items-center justify-center text-3xl text-white rounded-md font-medium ${
           size === 'large' ? large : medium
         }`}
       >

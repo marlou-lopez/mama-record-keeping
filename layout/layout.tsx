@@ -21,13 +21,13 @@ const Layout = ({ children }: LayoutType) => {
 
   return (
     <div className="bg-gray-50 flex flex-col h-screen">
-      <div className="p-4 z-10 border-b flex items-center justify-between">
+      <div className="px-4 z-10 h-16 bg-gray-50 border-b-2 flex items-center justify-between fixed top-0 w-full">
         <button onClick={() => Router.back()}>Back</button>
         <button className="p-2 border-2" onClick={handleSignout}>
           Logout
         </button>
       </div>
-      <div>{children}</div>
+      <div className='mt-28'>{children}</div>
     </div>
   );
 };

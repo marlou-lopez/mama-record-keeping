@@ -68,7 +68,7 @@ const AmountInputForm: React.FC<AmountInputFormProps> = ({
               { id: nanoid(), value: 0 },
             ])
           }
-          className="p-2 text-sm uppercase text-blue-600 font-semibold"
+          className="p-2 text-sm uppercase text-cyan-600 font-semibold"
         >
           Add more amount
         </button>

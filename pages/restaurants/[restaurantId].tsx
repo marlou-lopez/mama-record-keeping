@@ -1,12 +1,7 @@
-import { NextPage } from 'next';
-import Link from 'next/link';
 import { useRouter } from 'next/router';
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { nanoid } from 'nanoid';
-import DateRangePicker, {
-  DateRange,
-  DateRangeHandle,
-} from '../../components/DateRangePicker';
+import DateRangePicker, { DateRange } from '../../components/DateRangePicker';
 import AddRecordForm from '../../components/AddRecordForm';
 import { RecordItem } from '../../components/RecordViewItem';
 import RecordViewItemList from '../../components/RecordViewItemList';
@@ -71,6 +66,7 @@ const RecordView: NextPageWithLayout = () => {
   ]);
 
   const [dateKey, setDateRangeKey] = useState<string>(nanoid());
+  const [formKey, setFormKey] = useState<string>(nanoid());
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -94,9 +90,9 @@ const RecordView: NextPageWithLayout = () => {
 
   return (
     <>
-      <div className="flex w-full fixed">
-        <div className="flex flex-col p-4 mx-auto  w-full md:max-w-xl bg-gray-50 border-b-2">
-          <div className="flex justify-between items-center">
+      <div className="flex w-full fixed top-16">
+        <div className="flex flex-col px-4 pt-6 pb-4 mx-auto w-full md:max-w-xl bg-gray-50 border-b-2">
+          <div className="flex justify-between items-center bg-gray-50 py-2">
             <h1 className="text-3xl">{restaurantInfo?.name}</h1>
             <div className="flex items-center gap-1">
               <input
@@ -108,75 +104,91 @@ const RecordView: NextPageWithLayout = () => {
               <label htmlFor="showDatePicker">Select Date</label>
             </div>
           </div>
-          {showDatePicker && (
-            <form onSubmit={handleSubmit} className="flex flex-col gap-2">
-              <DateRangePicker
-                key={dateKey}
-                value={dateRangeValue}
-                onChange={(date) => {
-                  setDateRangeValue(date);
-                }}
-              />
-              {!isStartDateEmpty && (
-                <div className="flex flex-col gap-1">
-                  <button
-                    type={'submit'}
-                    disabled={isStartDateEmpty}
-                    className="flex justify-center items-center w-full p-3 border bg-blue-600 text-white font-semibold text-lg rounded-md"
-                  >
-                    Generate Records
-                  </button>
-                  <button
-                    type={'button'}
-                    disabled={isStartDateEmpty}
-                    className={`border border-gray-400 rounded-md p-2 font-semibold`}
-                    onClick={handleClear}
-                  >
-                    Clear
-                  </button>
-                </div>
-              )}
-            </form>
-          )}
+          <form
+            onSubmit={handleSubmit}
+            className={`flex flex-col gap-2 transition-all duration-500 ease-in-out overflow-hidden
+            ${showDatePicker ? 'max-h-72' : 'max-h-0 invisible'}
+            `}
+          >
+            <DateRangePicker
+              key={dateKey}
+              value={dateRangeValue}
+              onChange={(date) => {
+                setDateRangeValue(date);
+              }}
+            />
+            {!isStartDateEmpty && (
+              <div className="flex flex-col gap-1">
+                <button
+                  type={'submit'}
+                  disabled={isStartDateEmpty}
+                  className="flex justify-center items-center w-full p-3 border bg-cyan-600 text-white font-semibold text-lg rounded-md"
+                >
+                  Generate Records
+                </button>
+                <button
+                  type={'button'}
+                  disabled={isStartDateEmpty}
+                  className={`border border-gray-400 rounded-md p-2 font-semibold`}
+                  onClick={handleClear}
+                >
+                  Clear
+                </button>
+              </div>
+            )}
+          </form>
         </div>
       </div>
       <div
-        className={`flex flex-col p-4 mx-auto w-full md:max-w-xl ${
-          showDatePicker ? 'mt-40' : 'mt-20'
-        }
-          ${!isStartDateEmpty && 'mt-[336px]'}
-        `}
+        className={`flex flex-col px-4 pt-16 pb-32 mx-auto w-full md:max-w-xl`}
       >
         {!isLoading && <RecordViewItemList items={recordItems} />}
       </div>
       <div className="fixed bottom-0 w-full">
         <div
-          className={`bg-gray-50 border-t-2 p-4 flex justify-center transition-[height] duration-500 ease-in-out ${
-            showForm ? 'h-96' : 'h-16'
+          className={`bg-cyan-100 border-t-2 p-4 w-full absolute flex flex-col justify-between items-center transition-[all] duration-500 ease-in-out ${
+            showForm ? 'bottom-0' : '-bottom-72'
           }`}
         >
-          {!showForm && (
-            <button
-              type={'button'}
-              onClick={() => {
-                setShowForm(true);
-              }}
-            >
-              Add Record
-            </button>
-          )}
-          {showForm && (
-            <div className="flex flex-col gap-2 w-full sm:w-72">
+          <div className="flex justify-center mb-8">
+            {!showForm ? (
+              <button
+                className="py-2 px-4 uppercase font-semibold text-cyan-600"
+                type={'button'}
+                onClick={() => {
+                  setShowForm(true);
+                }}
+              >
+                Add Record
+              </button>
+            ) : (
               <button
                 className="uppercase text-xs p-2 font-semibold text-gray-500"
                 type={'button'}
-                onClick={() => setShowForm(false)}
+                onClick={() => {
+                  setFormKey(nanoid());
+                  setShowForm(false);
+                }}
               >
                 Close
               </button>
-              <AddRecordForm restaurantId={Number(restaurantId)} />
-            </div>
-          )}
+            )}
+          </div>
+          <div
+            className={`flex flex-col gap-2 w-full sm:w-72 transition-all duration-1000 ease-linear ${
+              showForm ? 'visible' : 'invisible'
+            }`}
+          >
+            {/* Using key to remount - this resets the form */}
+            <AddRecordForm
+              restaurantId={Number(restaurantId)}
+              key={formKey}
+              onAdd={() => {
+                setFormKey(nanoid());
+                setShowForm(false);
+              }}
+            />
+          </div>
         </div>
       </div>
     </>

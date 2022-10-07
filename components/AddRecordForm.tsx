@@ -13,6 +13,7 @@ type AmountValueType = {
 
 type AddRecordFormProps = {
   restaurantId: number;
+  onAdd: () => void;
 };
 
 const addRecord = async (newRecord: RecordItem) => {
@@ -49,7 +50,7 @@ const addRecord = async (newRecord: RecordItem) => {
   }
 };
 
-const AddRecordForm: React.FC<AddRecordFormProps> = ({ restaurantId }) => {
+const AddRecordForm: React.FC<AddRecordFormProps> = ({ restaurantId, onAdd }) => {
   const { user } = useUser();
   const queryClient = useQueryClient();
   const { mutate } = useMutation(addRecord, {
@@ -133,13 +134,14 @@ const AddRecordForm: React.FC<AddRecordFormProps> = ({ restaurantId }) => {
 
     mutate(newRecord);
 
-    setDateValue('');
-    setAmountValues([
-      {
-        id: nanoid(),
-        value: 0,
-      },
-    ]);
+    onAdd()
+    // setDateValue('');
+    // setAmountValues([
+    //   {
+    //     id: nanoid(),
+    //     value: 0,
+    //   },
+    // ]);
   };
 
   return (
@@ -164,8 +166,8 @@ const AddRecordForm: React.FC<AddRecordFormProps> = ({ restaurantId }) => {
       <button
         type={'submit'}
         disabled={!isFormComplete}
-        className={`mt-2 flex justify-center items-center w-full p-3 border bg-blue-600 text-white font-semibold text-lg rounded-md
-          ${!isFormComplete && 'bg-gray-300'}
+        className={`mt-2 flex justify-center items-center w-full p-3 border bg-cyan-600 text-white font-semibold text-lg rounded-md
+          ${!isFormComplete && 'opacity-30'}
           `}
       >
         Add
