@@ -1,5 +1,4 @@
 import { supabaseClient } from '@supabase/auth-helpers-nextjs';
-import { User } from '@supabase/supabase-js';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import AddRestaurantForm from '../../components/AddRestaurantForm';

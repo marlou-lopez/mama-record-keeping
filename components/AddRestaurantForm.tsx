@@ -2,6 +2,7 @@ import { supabaseClient, User } from "@supabase/auth-helpers-nextjs";
 import { useUser } from "@supabase/auth-helpers-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import toast from "react-hot-toast";
 import { Restaurant } from "../pages/restaurants";
 
 const addRestaurant = async ({
@@ -48,18 +49,21 @@ const AddRestaurantForm = () => {
       return { previousRestaurants };
     },
     onError: (_error, _variables, context) => {
+      toast.error('Something went wrong');
       queryClient.setQueryData(['restaurants'], context?.previousRestaurants);
     },
     onSettled: () => {
       queryClient.invalidateQueries(['restaurants']);
     },
+    onSuccess: () => {
+      toast.success('Restaurant successfully added.');
+    }
   });
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
     setRestaurantName('');
-    console.log('submitted name: ', restaurantName);
 
     mutate({
       name: restaurantName,

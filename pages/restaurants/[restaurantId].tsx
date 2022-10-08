@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { nanoid } from 'nanoid';
 import DateRangePicker, { DateRange } from '../../components/DateRangePicker';
 import AddRecordForm from '../../components/AddRecordForm';
@@ -11,13 +11,27 @@ import { Restaurant } from '.';
 import { NextPageWithLayout } from '../_app';
 import Layout from '../../layout/layout';
 import BottomFormDrawer from '../../components/BottomFormDrawer';
+import toast from 'react-hot-toast';
 
-const getRecords = async (restaurantId: number | undefined) => {
+type GetRecordsParams = {
+  restaurantId: number | undefined;
+  dateRange: DateRange;
+};
+
+const getRecords = async ({ restaurantId, dateRange }: GetRecordsParams) => {
+  console.log(dateRange);
   if (!restaurantId) return;
-  const { data, error } = await supabaseClient
+  let query = supabaseClient
     .from<RecordItem>('records')
     .select('*')
     .eq('restaurant_id', restaurantId);
+
+  if (dateRange[0] && dateRange[1]) {
+    query = query.lte('issued_at', dateRange[1]).gte('issued_at', dateRange[0]);
+  }
+  query = query.order('issued_at', { ascending: true });
+
+  const { data, error } = await query;
 
   if (error) {
     throw new Error(error.message);
@@ -44,6 +58,10 @@ const getRestaurant = async (restaurantId: string | undefined) => {
 const RecordView: NextPageWithLayout = () => {
   const router = useRouter();
   const { restaurantId } = router.query;
+  const [dateRangeValue, setDateRangeValue] = useState<DateRange>([
+    undefined,
+    undefined,
+  ]);
   const { data: restaurantInfo } = useQuery(
     ['restaurant', restaurantId],
     () => getRestaurant(restaurantId as string),
@@ -51,47 +69,79 @@ const RecordView: NextPageWithLayout = () => {
       enabled: !!restaurantId,
     }
   );
-  const { data: recordItems, isLoading } = useQuery(
+  const {
+    data: recordItems,
+    isLoading,
+    refetch,
+    isRefetching,
+  } = useQuery(
     ['records', restaurantInfo?.id],
-    () => getRecords(restaurantInfo?.id),
+    () =>
+      getRecords({
+        restaurantId: restaurantInfo?.id,
+        dateRange: dateRangeValue,
+      }),
     {
       enabled: !!restaurantInfo,
     }
   );
   const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
-  const [openBottomDrawer, setOpenBottomDrawer] = useState<boolean>(false);
-
-  const [dateRangeValue, setDateRangeValue] = useState<DateRange>([
-    undefined,
-    new Date().toLocaleDateString('en-CA'),
-  ]);
 
   const [dateKey, setDateRangeKey] = useState<string>(nanoid());
-  const [formKey, setFormKey] = useState<string>(nanoid());
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    await toast.promise(refetch(), {
+      loading: 'Generating records...',
+      success: 'Records generated!',
+      error: 'Something went wrong',
+    });
 
     console.log('submitted: ', dateRangeValue);
   };
-  const handleClear = () => {
-    setDateRangeValue((currentDateRange) => [undefined, currentDateRange[1]]);
-
+  const handleClear = async () => {
+    setDateRangeValue([undefined, undefined]);
     // To create a new date range instance, instead of updating the existing.
     // Reasoning: DateRangePicker is uncontrolled.
     setDateRangeKey(nanoid());
+
+    // await toast.promise(
+    //   refetch(),
+    //   {
+    //     loading: 'Resetting records...',
+    //     success: 'All records are displayed!',
+    //     error: 'Something went wrong'
+    //   }
+    // )
   };
 
   const handleShowDatePicker = () => {
     setShowDatePicker((curr) => !curr);
   };
 
-  const isStartDateEmpty =
-    dateRangeValue[0] === undefined || dateRangeValue[0] === '';
+  const isDateRangeComplete =
+    dateRangeValue[0] !== undefined &&
+    dateRangeValue[0] !== '' &&
+    dateRangeValue[1] !== undefined &&
+    dateRangeValue[1] !== '';
 
+  useEffect(() => {
+    if (!isDateRangeComplete) {
+      toast.promise(refetch(), {
+        loading: 'Resetting records...',
+        success: 'All records are displayed!',
+        error: 'Something went wrong',
+      });
+    }
+  }, [isDateRangeComplete, refetch]);
+
+  // if (isRefetching ) {
+  //   toast.loading('Generating records...');
+  // }
   return (
     <>
-      <div className="flex w-full fixed top-16">
+      <div className="flex w-full fixed top-16 z-10">
         <div className="flex flex-col px-4 pt-6 pb-4 mx-auto w-full md:max-w-xl bg-gray-50 border-b-2">
           <div className="flex justify-between items-center bg-gray-50 py-2">
             <h1 className="text-3xl">{restaurantInfo?.name}</h1>
@@ -107,7 +157,7 @@ const RecordView: NextPageWithLayout = () => {
           </div>
           <form
             onSubmit={handleSubmit}
-            className={`flex flex-col gap-2 transition-all duration-500 ease-in-out overflow-hidden
+            className={`flex flex-col z-10 border-gray-50 gap-2 transition-all duration-300 ease-in-out overflow-hidden
             ${showDatePicker ? 'max-h-72' : 'max-h-0 invisible'}
             `}
           >
@@ -118,18 +168,18 @@ const RecordView: NextPageWithLayout = () => {
                 setDateRangeValue(date);
               }}
             />
-            {!isStartDateEmpty && (
+            {isDateRangeComplete && (
               <div className="flex flex-col gap-1">
                 <button
                   type={'submit'}
-                  disabled={isStartDateEmpty}
+                  disabled={!isDateRangeComplete}
                   className="flex justify-center items-center w-full p-3 border bg-cyan-600 text-white font-semibold text-lg rounded-md"
                 >
                   Generate Records
                 </button>
                 <button
                   type={'button'}
-                  disabled={isStartDateEmpty}
+                  disabled={!isDateRangeComplete}
                   className={`border border-gray-400 rounded-md p-2 font-semibold`}
                   onClick={handleClear}
                 >
@@ -141,7 +191,16 @@ const RecordView: NextPageWithLayout = () => {
         </div>
       </div>
       <div
-        className={`flex flex-col px-4 pt-16 pb-32 mx-auto w-full md:max-w-xl`}
+        className={`flex flex-col px-4 pt-16 pb-32 mx-auto w-full md:max-w-xl
+          transition-all duration-300 ease-in-out
+            ${
+              showDatePicker
+                ? isDateRangeComplete
+                  ? 'mt-52'
+                  : 'mt-24'
+                : 'mt-0'
+            }
+          `}
       >
         {!isLoading && <RecordViewItemList items={recordItems} />}
       </div>

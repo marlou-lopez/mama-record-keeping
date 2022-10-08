@@ -3,6 +3,7 @@ import { supabaseClient } from '@supabase/auth-helpers-nextjs';
 import { useUser } from '@supabase/auth-helpers-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { errorMonitor } from 'events';
+import toast from 'react-hot-toast';
 
 export type RecordItem = {
   id: number;
@@ -34,7 +35,7 @@ type ItemMenuProps = {
 const ItemMenu: React.FC<ItemMenuProps> = ({ onEdit, onDelete }) => {
   return (
     <Menu as="div" className="relative ">
-      <Menu.Button>
+      <Menu.Button className="relative z-0">
         <KebabIcon />
       </Menu.Button>
       <Menu.Items className="absolute bg-gray-50 origin-top-right border-2 w-32 right-0 mt-1 z-10 rounded-md shadow-md">
@@ -100,6 +101,7 @@ const RecordViewItem: React.FC<RecordItem> = ({
       return { previousRecords };
     },
     onError: (_error, _variables, context) => {
+      toast.error('Something went wrong');
       queryClient.setQueryData(
         ['records', restaurant_id],
         context?.previousRecords
@@ -108,12 +110,15 @@ const RecordViewItem: React.FC<RecordItem> = ({
     onSettled: () => {
       queryClient.invalidateQueries(['records']);
     },
+    onSuccess: () => {
+      toast.success('Record deleted succussfully' )
+    }
   });
   return (
     <div className="flex flex-col w-full border rounded-md p-2 mb-2 gap-1 last:mb-0">
       <div className="flex items-center justify-between">
         <p className="font-semibold">
-          {new Intl.DateTimeFormat('en-US').format(new Date(issued_at))}
+          {new Date(issued_at).toDateString()}
         </p>
         <ItemMenu
           onEdit={() => console.log('edit')}

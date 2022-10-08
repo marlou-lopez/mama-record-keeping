@@ -3,8 +3,12 @@ import { useUser } from '@supabase/auth-helpers-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { nanoid } from 'nanoid';
 import React, { useContext, useState } from 'react';
+import toast from 'react-hot-toast';
 import AmountInputForm from './AmountInputForm';
-import { bottomFormDrawerContext, useBottomFormDrawer } from './BottomFormDrawer';
+import {
+  bottomFormDrawerContext,
+  useBottomFormDrawer,
+} from './BottomFormDrawer';
 import { RecordItem } from './RecordViewItem';
 
 type AmountValueType = {
@@ -91,7 +95,11 @@ const AddRecordForm: React.FC<AddRecordFormProps> = ({
               amounts: newRecord.amounts,
               user_id: newRecord.user_id,
             },
-          ];
+          ].sort((a, b) => {
+            const tempA = new Date(a.issued_at).getTime();
+            const tempB = new Date(b.issued_at).getTime();
+            return tempA - tempB;
+          });
         }
         queryClient.setQueryData<RecordItem[]>(
           ['records', newRecord.restaurant_id],
@@ -102,6 +110,7 @@ const AddRecordForm: React.FC<AddRecordFormProps> = ({
       return { previousRecords };
     },
     onError: (_error, _variables, context) => {
+      toast.error('Something went wrong');
       queryClient.setQueryData(
         ['records', _variables.restaurant_id],
         context?.previousRecords
@@ -110,6 +119,9 @@ const AddRecordForm: React.FC<AddRecordFormProps> = ({
     onSettled: () => {
       queryClient.invalidateQueries(['records']);
     },
+    onSuccess: () => {
+      toast.success('Record successfully added')
+    }
   });
   const [dateValue, setDateValue] = useState<string>('');
   const [amountValues, setAmountValues] = useState<AmountValueType[]>([
