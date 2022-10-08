@@ -1,4 +1,5 @@
 import { supabaseClient } from '@supabase/auth-helpers-nextjs';
+import { useUser } from '@supabase/auth-helpers-react';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import AddRestaurantForm from '../../components/AddRestaurantForm';
@@ -28,7 +29,10 @@ const fetchRestaurants = async () => {
 
 
 const Restaurants: NextPageWithLayout = () => {
-  const { data } = useQuery(['restaurants'], () => fetchRestaurants());
+  const { user, isLoading } = useUser();
+  const { data } = useQuery(['restaurants'], () => fetchRestaurants(), {
+    enabled: !!user && !isLoading
+  });
 
   return (
     <>

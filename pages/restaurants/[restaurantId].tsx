@@ -62,18 +62,17 @@ const RecordView: NextPageWithLayout = () => {
     undefined,
     undefined,
   ]);
-  const { data: restaurantInfo } = useQuery(
+  const { data: restaurantInfo, isLoading: isGettingRestaurantInfo } = useQuery(
     ['restaurant', restaurantId],
     () => getRestaurant(restaurantId as string),
     {
-      enabled: !!restaurantId,
+      enabled: !!restaurantId && router.isReady,
     }
   );
   const {
     data: recordItems,
-    isLoading,
+    isLoading: isLoadingRecords,
     refetch,
-    isRefetching,
   } = useQuery(
     ['records', restaurantInfo?.id],
     () =>
@@ -97,23 +96,12 @@ const RecordView: NextPageWithLayout = () => {
       success: 'Records generated!',
       error: 'Something went wrong',
     });
-
-    console.log('submitted: ', dateRangeValue);
   };
   const handleClear = async () => {
     setDateRangeValue([undefined, undefined]);
     // To create a new date range instance, instead of updating the existing.
     // Reasoning: DateRangePicker is uncontrolled.
     setDateRangeKey(nanoid());
-
-    // await toast.promise(
-    //   refetch(),
-    //   {
-    //     loading: 'Resetting records...',
-    //     success: 'All records are displayed!',
-    //     error: 'Something went wrong'
-    //   }
-    // )
   };
 
   const handleShowDatePicker = () => {
@@ -126,19 +114,24 @@ const RecordView: NextPageWithLayout = () => {
     dateRangeValue[1] !== undefined &&
     dateRangeValue[1] !== '';
 
+  // Need to find better way
   useEffect(() => {
-    if (!isDateRangeComplete) {
+    async function refetchRecords() {
       toast.promise(refetch(), {
         loading: 'Resetting records...',
         success: 'All records are displayed!',
         error: 'Something went wrong',
       });
     }
+    if (!isDateRangeComplete) {
+      refetchRecords();
+    }
+
+    return () => {
+      console.log('awgagw');
+    };
   }, [isDateRangeComplete, refetch]);
 
-  // if (isRefetching ) {
-  //   toast.loading('Generating records...');
-  // }
   return (
     <>
       <div className="flex w-full fixed top-16 z-10">
@@ -161,6 +154,7 @@ const RecordView: NextPageWithLayout = () => {
             ${showDatePicker ? 'max-h-72' : 'max-h-0 invisible'}
             `}
           >
+            {/* Change Approach for this form */}
             <DateRangePicker
               key={dateKey}
               value={dateRangeValue}
@@ -202,7 +196,7 @@ const RecordView: NextPageWithLayout = () => {
             }
           `}
       >
-        {!isLoading && <RecordViewItemList items={recordItems} />}
+        {!isLoadingRecords && <RecordViewItemList items={recordItems} />}
       </div>
       <BottomFormDrawer openText="Add Record">
         <AddRecordForm restaurantId={Number(restaurantId)} />
