@@ -48,7 +48,7 @@ const Restaurants: NextPageWithLayout = () => {
             );
           })}
       </div>
-      <BottomFormDrawer>
+      <BottomFormDrawer openText='Add Restaurant'>
        <AddRestaurantForm /> 
       </BottomFormDrawer>
     </>

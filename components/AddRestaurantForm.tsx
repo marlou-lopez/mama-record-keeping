@@ -24,7 +24,7 @@ const addRestaurant = async ({
 const AddRestaurantForm = () => {
   const queryClient = useQueryClient();
   const { user } = useUser();
-  const [name, setName] = useState<string>('');
+  const [restaurantName, setRestaurantName] = useState<string>('');
   const { mutate } = useMutation(addRestaurant, {
     onMutate: async ({ name: newRestaurant, user }) => {
       await queryClient.cancelQueries(['restaurants']);
@@ -58,29 +58,34 @@ const AddRestaurantForm = () => {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    setName('');
-    console.log('submitted name: ', name);
+    setRestaurantName('');
+    console.log('submitted name: ', restaurantName);
 
     mutate({
-      name,
+      name: restaurantName,
       user,
     });
   };
+
+  const isFormComplete = restaurantName !== undefined && restaurantName !== '';
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col p-2 gap-2">
       <div className="flex flex-col">
         <label htmlFor="name">Name: </label>
         <input
-          className="p-2 rounded border"
+          className="border border-black rounded-md p-2 w-full"
           type={'text'}
           id="name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          value={restaurantName}
+          onChange={(e) => setRestaurantName(e.target.value)}
         />
       </div>
       <button
-        className="p-2 bg-black text-white"
+        disabled={!isFormComplete}
+        className={`mt-2 flex justify-center items-center w-full p-3 border bg-cyan-600 text-white font-semibold text-lg rounded-md
+          ${!isFormComplete && 'opacity-30'}
+          `}
         type={'submit'}
         onClick={handleSubmit}
       >

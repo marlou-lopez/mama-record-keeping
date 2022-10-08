@@ -3,9 +3,7 @@ import React, { useCallback, useLayoutEffect, useRef } from 'react';
 import { useEffect, useState } from 'react';
 
 type BottomFormDrawerProps = {
-  open?: boolean;
-  onOpen?: () => void;
-  onClose?: () => void;
+  openText?: string;
   children: React.ReactNode;
 };
 
@@ -27,7 +25,11 @@ export function useBottomFormDrawer() {
 
   return context;
 }
-const BottomFormDrawer: React.FC<BottomFormDrawerProps> = ({ children }) => {
+
+const BottomFormDrawer: React.FC<BottomFormDrawerProps> = ({
+  children,
+  openText = 'open',
+}) => {
   const [showForm, setShowForm] = useState<boolean>(false);
   const [formKey, setFormKey] = useState<string>(nanoid());
   const formRef = useRef<HTMLDivElement | null>(null);
@@ -42,11 +44,10 @@ const BottomFormDrawer: React.FC<BottomFormDrawerProps> = ({ children }) => {
     setShowForm(false);
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     setFormHeight(formRef.current?.clientHeight);
   }, []);
 
-  console.log("formHeight: ", formHeight);
   return (
     <bottomFormDrawerContext.Provider
       value={{
@@ -57,12 +58,16 @@ const BottomFormDrawer: React.FC<BottomFormDrawerProps> = ({ children }) => {
       <div
         // Using inline style for dynamic height since tailwind won't know the value on compile
         style={{
-          transform: `${showForm ? 'translateY(0)' : `translateY(${(formHeight ?? 256) + 30}px)`}`
+          transform: `${
+            showForm
+              ? 'translateY(0)'
+              : `translateY(${(formHeight ?? 256) + 30}px)`
+          }`,
         }}
-        className={`bg-cyan-100 border-t-2 bottom-0 h-auto p-4 w-full fixed flex flex-col justify-between items-center transition-[all] duration-500 ease-in-out 
+        className={`bg-cyan-100 border-t-2 bottom-0 h-auto p-4 w-full gap-8 fixed flex flex-col justify-between items-center transition-[all] duration-500 ease-in-out 
         `}
       >
-        <div className="flex justify-center mb-8 ">
+        <div className="flex items-center justify-center w-full">
           {!showForm ? (
             <button
               className="py-2 px-4 uppercase font-semibold text-cyan-600"
@@ -71,7 +76,7 @@ const BottomFormDrawer: React.FC<BottomFormDrawerProps> = ({ children }) => {
                 setShowForm(true);
               }}
             >
-              Add Record
+              {openText}
             </button>
           ) : (
             <button
