@@ -27,7 +27,7 @@ const Layout = ({ children }: LayoutType) => {
           Logout
         </button>
       </div>
-      <div className="mt-28">{children}</div>
+      <div className="h-full mt-16">{children}</div>
     </div>
   );
 };

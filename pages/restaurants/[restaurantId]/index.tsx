@@ -1,17 +1,29 @@
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
 import { nanoid } from 'nanoid';
-import DateRangePicker, { DateRange } from '../../components/DateRangePicker';
-import AddRecordForm from '../../components/AddRecordForm';
-import { RecordItem } from '../../components/RecordViewItem';
-import RecordViewItemList from '../../components/RecordViewItemList';
+import DateRangePicker, {
+  DateRange,
+} from '../../../components/DateRangePicker';
+import AddRecordForm from '../../../components/AddRecordForm';
+import { RecordItem } from '../../../components/RecordViewItem';
+import RecordViewItemList from '../../../components/RecordViewItemList';
 import { supabaseClient } from '@supabase/auth-helpers-nextjs';
 import { useQuery } from '@tanstack/react-query';
-import { Restaurant } from '.';
-import { NextPageWithLayout } from '../_app';
-import Layout from '../../layout/layout';
-import BottomFormDrawer from '../../components/BottomFormDrawer';
+import { NextPageWithLayout } from '../../_app';
+import Layout from '../../../layout/layout';
+import BottomFormDrawer from '../../../components/BottomFormDrawer';
 import toast from 'react-hot-toast';
+import Link from 'next/link';
+import { Restaurant } from '..';
+import {
+  Page,
+  PDFViewer,
+  View,
+  Document,
+  StyleSheet,
+  Text,
+} from '@react-pdf/renderer';
+import { Dialog } from '@headlessui/react';
 
 type GetRecordsParams = {
   restaurantId: number | undefined;
@@ -19,7 +31,6 @@ type GetRecordsParams = {
 };
 
 const getRecords = async ({ restaurantId, dateRange }: GetRecordsParams) => {
-  console.log(dateRange);
   if (!restaurantId) return;
   let query = supabaseClient
     .from<RecordItem>('records')
@@ -55,6 +66,123 @@ const getRestaurant = async (restaurantId: string | undefined) => {
   return data;
 };
 
+const styles = StyleSheet.create({
+  page: {
+    display: 'flex',
+    // flexDirection: 'row',
+  },
+});
+
+type PageToPrintProps = {
+  data: RecordItem[];
+  name?: string;
+};
+const PageToPrint = ({ data, name }: PageToPrintProps) => {
+  return (
+    <PDFViewer className="w-full h-full">
+      <Document>
+        <Page size="A4" style={styles.page} wrap>
+          <View
+            style={{
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              // justifyContent: 'center',
+              alignItems: 'center',
+            }}
+          >
+            <View
+              style={{
+                // backgroundColor: 'blue',
+                borderBottom: '1px solid grey',
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'row',
+                height: '64px',
+                padding: '8px',
+                alignItems: 'center',
+              }}
+            >
+              <Text
+                style={{
+                  fontWeight: 'bold',
+                  fontSize: '24px',
+                }}
+              >
+                {name}
+              </Text>
+            </View>
+            <View
+              style={{
+                backgroundColor: 'white',
+                height: '100%',
+                width: '100%',
+                padding: '8px',
+              }}
+            >
+              {data?.map((d) => {
+                return (
+                  <View
+                    key={d.id}
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'row',
+                      border: '1px solid #000',
+                      padding: '4px',
+                      justifyContent: 'space-between',
+                      marginBottom: '4px',
+                    }}
+                  >
+                    <Text>{new Date(d.issued_at).toDateString()}</Text>
+                    <View
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'flex-end',
+                      }}
+                    >
+                      {d.amounts.map((amt, index) => (
+                        <Text key={index}>{amt.toLocaleString()}</Text>
+                      ))}
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+            <View
+              style={{
+                position: 'absolute',
+                bottom: 0,
+                paddingVertical: '8px',
+                paddingHorizontal: '32px',
+                display: 'flex',
+                justifyContent: 'flex-end',
+                flexDirection: 'row',
+                // backgroundColor: 'green',
+                width: '100%',
+              }}
+            >
+              <Text style={{
+                fontSize: '24px',
+                border: '2px solid #000',
+                padding: '18px',
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center'
+              }}>
+                Total:{' '}
+                {data.reduce((acc, cur) => {
+                  return acc + cur.amounts.reduce((a, c) => a + c, 0);
+                }, 0).toLocaleString()}
+              </Text>
+            </View>
+          </View>
+        </Page>
+      </Document>
+    </PDFViewer>
+  );
+};
+
 const RecordView: NextPageWithLayout = () => {
   const router = useRouter();
   const { restaurantId } = router.query;
@@ -85,8 +213,9 @@ const RecordView: NextPageWithLayout = () => {
     }
   );
   const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
-
   const [dateKey, setDateRangeKey] = useState<string>(nanoid());
+
+  const [openDialog, setOpenDialog] = useState<boolean>(false);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -138,14 +267,22 @@ const RecordView: NextPageWithLayout = () => {
         <div className="flex flex-col px-4 pt-6 pb-4 mx-auto w-full md:max-w-xl bg-gray-50 border-b-2">
           <div className="flex justify-between items-center bg-gray-50 py-2">
             <h1 className="text-3xl">{restaurantInfo?.name}</h1>
-            <div className="flex items-center gap-1">
-              <input
-                type={'checkbox'}
-                id="showDatePicker"
-                onChange={handleShowDatePicker}
-                checked={showDatePicker}
-              />
-              <label htmlFor="showDatePicker">Select Date</label>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
+                <input
+                  type={'checkbox'}
+                  id="showDatePicker"
+                  onChange={handleShowDatePicker}
+                  checked={showDatePicker}
+                />
+                <label htmlFor="showDatePicker">Select Date</label>
+              </div>
+              <button
+                onClick={() => setOpenDialog(true)}
+                className="p-2 border rounded uppercase font-semibold bg-cyan-600 text-white"
+              >
+                Print
+              </button>
             </div>
           </div>
           <form
@@ -198,6 +335,30 @@ const RecordView: NextPageWithLayout = () => {
       >
         {!isLoadingRecords && <RecordViewItemList items={recordItems} />}
       </div>
+      <Dialog
+        className="z-50 relative"
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+      >
+        <div className="z-10 fixed inset-0 flex items-center justify-center">
+          <Dialog.Panel className="bg-gray-50 w-full h-full p-8 flex flex-col flex-grow">
+            <div className="flex flex-col h-full gap-3">
+              <Dialog.Title className="text-3xl uppercase font-bold">
+                Print
+              </Dialog.Title>
+              <div className="flex flex-grow">
+                <PageToPrint
+                  data={recordItems || []}
+                  name={restaurantInfo?.name}
+                />
+              </div>
+              <div className="flex justify-end">
+                <button type="button" onClick={() => setOpenDialog(false)}>Close</button>
+              </div>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
       <BottomFormDrawer openText="Add Record">
         <AddRecordForm restaurantId={Number(restaurantId)} />
       </BottomFormDrawer>
