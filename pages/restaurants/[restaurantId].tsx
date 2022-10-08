@@ -10,6 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Restaurant } from '.';
 import { NextPageWithLayout } from '../_app';
 import Layout from '../../layout/layout';
+import BottomFormDrawer from '../../components/BottomFormDrawer';
 
 const getRecords = async (restaurantId: number | undefined) => {
   if (!restaurantId) return;
@@ -58,7 +59,7 @@ const RecordView: NextPageWithLayout = () => {
     }
   );
   const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
-  const [showForm, setShowForm] = useState<boolean>(false);
+  const [openBottomDrawer, setOpenBottomDrawer] = useState<boolean>(false);
 
   const [dateRangeValue, setDateRangeValue] = useState<DateRange>([
     undefined,
@@ -144,53 +145,67 @@ const RecordView: NextPageWithLayout = () => {
       >
         {!isLoading && <RecordViewItemList items={recordItems} />}
       </div>
-      <div className="fixed bottom-0 w-full">
-        <div
-          className={`bg-cyan-100 border-t-2 p-4 w-full absolute flex flex-col justify-between items-center transition-[all] duration-500 ease-in-out ${
-            showForm ? 'bottom-0' : '-bottom-72'
-          }`}
-        >
-          <div className="flex justify-center mb-8">
-            {!showForm ? (
-              <button
-                className="py-2 px-4 uppercase font-semibold text-cyan-600"
-                type={'button'}
-                onClick={() => {
-                  setShowForm(true);
-                }}
-              >
-                Add Record
-              </button>
-            ) : (
-              <button
-                className="uppercase text-xs p-2 font-semibold text-gray-500"
-                type={'button'}
-                onClick={() => {
-                  setFormKey(nanoid());
-                  setShowForm(false);
-                }}
-              >
-                Close
-              </button>
-            )}
-          </div>
-          <div
-            className={`flex flex-col gap-2 w-full sm:w-72 transition-all duration-1000 ease-linear ${
-              showForm ? 'visible' : 'invisible'
-            }`}
-          >
-            {/* Using key to remount - this resets the form */}
-            <AddRecordForm
-              restaurantId={Number(restaurantId)}
-              key={formKey}
-              onAdd={() => {
-                setFormKey(nanoid());
-                setShowForm(false);
-              }}
-            />
-          </div>
-        </div>
-      </div>
+      <BottomFormDrawer
+        open={openBottomDrawer}
+        // onOpen={() => {
+        //   setOpenBottomDrawer(true);
+        // }}
+      >
+        <AddRecordForm
+          restaurantId={Number(restaurantId)}
+          // key={formKey}
+          // onAdd={() => {
+          //   setOpenBottomDrawer(false);
+          // }}
+        />
+      </BottomFormDrawer>
+      {/* <div className="fixed bottom-0 w-full"> */}
+      {/*   <div */}
+      {/*     className={`bg-cyan-100 border-t-2 p-4 w-full absolute flex flex-col justify-between items-center transition-[all] duration-500 ease-in-out ${ */}
+      {/*       showForm ? 'bottom-0' : '-bottom-72' */}
+      {/*     }`} */}
+      {/*   > */}
+      {/*     <div className="flex justify-center mb-8"> */}
+      {/*       {!showForm ? ( */}
+      {/*         <button */}
+      {/*           className="py-2 px-4 uppercase font-semibold text-cyan-600" */}
+      {/*           type={'button'} */}
+      {/*           onClick={() => { */}
+      {/*             setShowForm(true); */}
+      {/*           }} */}
+      {/*         > */}
+      {/*           Add Record */}
+      {/*         </button> */}
+      {/*       ) : ( */}
+      {/*         <button */}
+      {/*           className="uppercase text-xs p-2 font-semibold text-gray-500" */}
+      {/*           type={'button'} */}
+      {/*           onClick={() => { */}
+      {/*             setFormKey(nanoid()); */}
+      {/*             setShowForm(false); */}
+      {/*           }} */}
+      {/*         > */}
+      {/*           Close */}
+      {/*         </button> */}
+      {/*       )} */}
+      {/*     </div> */}
+      {/*     <div */}
+      {/*       className={`flex flex-col gap-2 w-full sm:w-72 transition-all duration-1000 ease-linear ${ */}
+      {/*         showForm ? 'visible' : 'invisible' */}
+      {/*       }`} */}
+      {/*     > */}
+      {/*       {/1* Using key to remount - this resets the form *1/} */}
+      {/*       <AddRecordForm */}
+      {/*         restaurantId={Number(restaurantId)} */}
+      {/*         key={formKey} */}
+      {/*         onAdd={() => { */}
+      {/*           setFormKey(nanoid()); */}
+      {/*           setShowForm(false); */}
+      {/*         }} */}
+      {/*       /> */}
+      {/*     </div> */}
+      {/*   </div> */}
+      {/* </div> */}
     </>
   );
 };

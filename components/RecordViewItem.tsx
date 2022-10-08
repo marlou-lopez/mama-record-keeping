@@ -9,7 +9,9 @@ export type RecordItem = {
 const RecordViewItem: React.FC<RecordItem> = ({ issued_at, amounts, id }) => {
   return (
     <div className="flex flex-col w-full border rounded-md p-2 mb-2 last:mb-0">
-      <div className="font-semibold">{new Intl.DateTimeFormat('en-US').format(new Date(issued_at))}</div>
+      <div className="font-semibold">
+        {new Intl.DateTimeFormat('en-US').format(new Date(issued_at))}
+      </div>
       <div className="flex justify-end">
         {amounts.length > 1 ? (
           <div className="flex flex-col">

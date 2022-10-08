@@ -26,7 +26,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
 
   const signIn = async (payload: SupabaseAuthPayload) => {
-    console.log("payload: ", payload);
+    console.log('payload: ', payload);
     try {
       const { error } = await supabase.auth.signIn(payload);
 
@@ -44,7 +44,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const user = supabase.auth.user();
-    console.log("asdasdd: ", user);
+    console.log('asdasdd: ', user);
 
     if (user) {
       setUser(user);
@@ -58,7 +58,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setUser(user);
           setLoggedIn(true);
         } else {
-          console.log("pumasok");
+          console.log('pumasok');
           setUser(null);
           router.push('/');
         }

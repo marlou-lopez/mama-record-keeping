@@ -2,8 +2,9 @@ import { supabaseClient, User } from '@supabase/auth-helpers-nextjs';
 import { useUser } from '@supabase/auth-helpers-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { nanoid } from 'nanoid';
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import AmountInputForm from './AmountInputForm';
+import { bottomFormDrawerContext, useBottomFormDrawer } from './BottomFormDrawer';
 import { RecordItem } from './RecordViewItem';
 
 type AmountValueType = {
@@ -13,7 +14,7 @@ type AmountValueType = {
 
 type AddRecordFormProps = {
   restaurantId: number;
-  onAdd: () => void;
+  onAdd?: () => void;
 };
 
 const addRecord = async (newRecord: RecordItem) => {
@@ -50,7 +51,11 @@ const addRecord = async (newRecord: RecordItem) => {
   }
 };
 
-const AddRecordForm: React.FC<AddRecordFormProps> = ({ restaurantId, onAdd }) => {
+const AddRecordForm: React.FC<AddRecordFormProps> = ({
+  restaurantId,
+  onAdd,
+}) => {
+  const { closeDrawer } = useBottomFormDrawer();
   const { user } = useUser();
   const queryClient = useQueryClient();
   const { mutate } = useMutation(addRecord, {
@@ -134,14 +139,7 @@ const AddRecordForm: React.FC<AddRecordFormProps> = ({ restaurantId, onAdd }) =>
 
     mutate(newRecord);
 
-    onAdd()
-    // setDateValue('');
-    // setAmountValues([
-    //   {
-    //     id: nanoid(),
-    //     value: 0,
-    //   },
-    // ]);
+    closeDrawer();
   };
 
   return (

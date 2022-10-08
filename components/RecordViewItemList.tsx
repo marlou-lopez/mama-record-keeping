@@ -1,7 +1,7 @@
 import RecordViewItem, { RecordItem } from './RecordViewItem';
 
 type RecordViewItemListProps = {
-  items: RecordItem[] | undefined
+  items: RecordItem[] | undefined;
 };
 
 const RecordViewItemList: React.FC<RecordViewItemListProps> = ({ items }) => {
