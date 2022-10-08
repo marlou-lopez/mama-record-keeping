@@ -131,6 +131,7 @@ const AddRecordForm: React.FC<AddRecordFormProps> = ({
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const newRecord: RecordItem = {
+      id: Math.random(),
       user_id: user?.id,
       amounts: amountValues.map((av) => av.value),
       issued_at: dateValue,
