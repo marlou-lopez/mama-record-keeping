@@ -27,15 +27,21 @@ const fetchRestaurants = async () => {
   return data;
 };
 
-
 const Restaurants: NextPageWithLayout = () => {
   const { user, isLoading } = useUser();
   const { data } = useQuery(['restaurants'], () => fetchRestaurants(), {
-    enabled: !!user && !isLoading
+    enabled: !!user && !isLoading,
   });
 
   return (
     <>
+      <div className="p-4 flex items-center justify-center">
+        <Link href={'/restaurants/all'}>
+          <a className="uppercase font-bold flex items-center">
+            View all records {'\u2192'}
+          </a>
+        </Link>
+      </div>
       <div className="flex flex-col items-center flex-grow">
         {data &&
           data.length > 0 &&
@@ -51,8 +57,8 @@ const Restaurants: NextPageWithLayout = () => {
             );
           })}
       </div>
-      <BottomFormDrawer openText='Add Restaurant'>
-       <AddRestaurantForm /> 
+      <BottomFormDrawer openText="Add Restaurant">
+        <AddRestaurantForm />
       </BottomFormDrawer>
     </>
   );

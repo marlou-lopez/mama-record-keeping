@@ -25,7 +25,7 @@ const Home: NextPage = () => {
           <Link href="/restaurants" passHref>
             <BigMenuLink>View Records</BigMenuLink>
           </Link>
-          <Link href="/print">
+          <Link href="/print" passHref>
             <BigMenuLink>Print Records</BigMenuLink>
           </Link>
         </>
