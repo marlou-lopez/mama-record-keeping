@@ -13,17 +13,9 @@ import { NextPageWithLayout } from '../../_app';
 import Layout from '../../../layout/layout';
 import BottomFormDrawer from '../../../components/BottomFormDrawer';
 import toast from 'react-hot-toast';
-import Link from 'next/link';
 import { Restaurant } from '..';
-import {
-  Page,
-  PDFViewer,
-  View,
-  Document,
-  StyleSheet,
-  Text,
-} from '@react-pdf/renderer';
 import { Dialog } from '@headlessui/react';
+import PrintRestaurantRecord from '../../../components/PrintRestaurantRecord';
 
 type GetRecordsParams = {
   restaurantId: number | undefined;
@@ -31,7 +23,7 @@ type GetRecordsParams = {
 };
 
 const getRecords = async ({ restaurantId, dateRange }: GetRecordsParams) => {
-  if (!restaurantId) return;
+  if (!restaurantId) return [];
   let query = supabaseClient
     .from<RecordItem>('records')
     .select('*')
@@ -48,7 +40,7 @@ const getRecords = async ({ restaurantId, dateRange }: GetRecordsParams) => {
     throw new Error(error.message);
   }
 
-  return data || [];
+  return data;
 };
 
 const getRestaurant = async (restaurantId: string | undefined) => {
@@ -64,123 +56,6 @@ const getRestaurant = async (restaurantId: string | undefined) => {
   }
 
   return data;
-};
-
-const styles = StyleSheet.create({
-  page: {
-    display: 'flex',
-    // flexDirection: 'row',
-  },
-});
-
-type PageToPrintProps = {
-  data: RecordItem[];
-  name?: string;
-};
-const PageToPrint = ({ data, name }: PageToPrintProps) => {
-  return (
-    <PDFViewer className="w-full h-full">
-      <Document>
-        <Page size="A4" style={styles.page} wrap>
-          <View
-            style={{
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              // justifyContent: 'center',
-              alignItems: 'center',
-            }}
-          >
-            <View
-              style={{
-                // backgroundColor: 'blue',
-                borderBottom: '1px solid grey',
-                width: '100%',
-                display: 'flex',
-                flexDirection: 'row',
-                height: '64px',
-                padding: '8px',
-                alignItems: 'center',
-              }}
-            >
-              <Text
-                style={{
-                  fontWeight: 'bold',
-                  fontSize: '24px',
-                }}
-              >
-                {name}
-              </Text>
-            </View>
-            <View
-              style={{
-                backgroundColor: 'white',
-                height: '100%',
-                width: '100%',
-                padding: '8px',
-              }}
-            >
-              {data?.map((d) => {
-                return (
-                  <View
-                    key={d.id}
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'row',
-                      border: '1px solid #000',
-                      padding: '4px',
-                      justifyContent: 'space-between',
-                      marginBottom: '4px',
-                    }}
-                  >
-                    <Text>{new Date(d.issued_at).toDateString()}</Text>
-                    <View
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'flex-end',
-                      }}
-                    >
-                      {d.amounts.map((amt, index) => (
-                        <Text key={index}>{amt.toLocaleString()}</Text>
-                      ))}
-                    </View>
-                  </View>
-                );
-              })}
-            </View>
-            <View
-              style={{
-                position: 'absolute',
-                bottom: 0,
-                paddingVertical: '8px',
-                paddingHorizontal: '32px',
-                display: 'flex',
-                justifyContent: 'flex-end',
-                flexDirection: 'row',
-                // backgroundColor: 'green',
-                width: '100%',
-              }}
-            >
-              <Text style={{
-                fontSize: '24px',
-                border: '2px solid #000',
-                padding: '18px',
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center'
-              }}>
-                Total:{' '}
-                {data.reduce((acc, cur) => {
-                  return acc + cur.amounts.reduce((a, c) => a + c, 0);
-                }, 0).toLocaleString()}
-              </Text>
-            </View>
-          </View>
-        </Page>
-      </Document>
-    </PDFViewer>
-  );
 };
 
 const RecordView: NextPageWithLayout = () => {
@@ -327,9 +202,9 @@ const RecordView: NextPageWithLayout = () => {
             ${
               showDatePicker
                 ? isDateRangeComplete
-                  ? 'mt-52'
-                  : 'mt-24'
-                : 'mt-0'
+                  ? 'mt-64'
+                  : 'mt-36'
+                : 'mt-14'
             }
           `}
       >
@@ -343,17 +218,19 @@ const RecordView: NextPageWithLayout = () => {
         <div className="z-10 fixed inset-0 flex items-center justify-center">
           <Dialog.Panel className="bg-gray-50 w-full h-full p-8 flex flex-col flex-grow">
             <div className="flex flex-col h-full gap-3">
-              <Dialog.Title className="text-3xl uppercase font-bold">
-                Print
+              <Dialog.Title className="flex justify-between items-center">
+                <p className='text-3xl uppercase font-bold'>Printing: {restaurantInfo?.name}</p>
+                <button className='border py-2 px-4' type="button" onClick={() => setOpenDialog(false)}>
+                  Close
+                </button>
               </Dialog.Title>
               <div className="flex flex-grow">
-                <PageToPrint
+                <PrintRestaurantRecord
                   data={recordItems || []}
                   name={restaurantInfo?.name}
                 />
               </div>
               <div className="flex justify-end">
-                <button type="button" onClick={() => setOpenDialog(false)}>Close</button>
               </div>
             </div>
           </Dialog.Panel>
