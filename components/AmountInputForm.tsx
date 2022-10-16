@@ -24,8 +24,9 @@ const AmountInputForm: React.FC<AmountInputFormProps> = ({
             return (
               <div className="flex items-center gap-2" key={amountValue.id}>
                 <input
+                  autoFocus
                   id={`amount-${amountValue.id}`}
-                  className="border border-black rounded-md p-2 w-full"
+                  className="border border-black rounded-md p-e w-full p-2"
                   type={'number'}
                   onChange={(event) =>
                     setAmountValues((currentAmountValues) =>
