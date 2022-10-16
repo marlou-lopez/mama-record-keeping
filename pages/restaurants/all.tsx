@@ -2,8 +2,7 @@ import { Dialog } from '@headlessui/react';
 import { supabaseClient } from '@supabase/auth-helpers-nextjs';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
-import PrintMultipleRestaurantRecords from '../../components/PrintMultipleRestaurantRecords';
-import PrintRestaurantRecord from '../../components/PrintRestaurantRecord';
+import PrintRecords from '../../components/PrintRecords/PrintRecords';
 import { RecordItem } from '../../components/RecordViewItem';
 import Layout from '../../layout/layout';
 import { NextPageWithLayout } from '../_app';
@@ -110,11 +109,7 @@ const All: NextPageWithLayout = () => {
                 </button>
               </Dialog.Title>
               <div className="flex flex-grow">
-                <PrintRestaurantRecord data={data} />
-                {/* <PrintRestaurantRecord */}
-                {/*   data={recordItems || []} */}
-                {/*   name={restaurantInfo?.name} */}
-                {/* /> */}
+                <PrintRecords data={data} />
               </div>
               <div className="flex justify-end"></div>
             </div>

@@ -15,7 +15,7 @@ import BottomFormDrawer from '../../../components/BottomFormDrawer';
 import toast from 'react-hot-toast';
 import { Restaurant } from '..';
 import { Dialog } from '@headlessui/react';
-import PrintRestaurantRecord from '../../../components/PrintRestaurantRecord';
+import PrintRecords from '../../../components/PrintRecords/PrintRecords';
 
 type GetRecordsParams = {
   restaurantId: number | undefined;
@@ -219,19 +219,24 @@ const RecordView: NextPageWithLayout = () => {
           <Dialog.Panel className="bg-gray-50 w-full h-full p-8 flex flex-col flex-grow">
             <div className="flex flex-col h-full gap-3">
               <Dialog.Title className="flex justify-between items-center">
-                <p className='text-3xl uppercase font-bold'>Printing: {restaurantInfo?.name}</p>
-                <button className='border py-2 px-4' type="button" onClick={() => setOpenDialog(false)}>
+                <p className="text-3xl uppercase font-bold">
+                  Printing: {restaurantInfo?.name}
+                </p>
+                <button
+                  className="border py-2 px-4"
+                  type="button"
+                  onClick={() => setOpenDialog(false)}
+                >
                   Close
                 </button>
               </Dialog.Title>
               <div className="flex flex-grow">
-                <PrintRestaurantRecord
+                <PrintRecords
                   data={recordItems || []}
                   name={restaurantInfo?.name}
                 />
               </div>
-              <div className="flex justify-end">
-              </div>
+              <div className="flex justify-end"></div>
             </div>
           </Dialog.Panel>
         </div>
