@@ -1,5 +1,6 @@
 import { Dialog } from '@headlessui/react';
 import { supabaseClient } from '@supabase/auth-helpers-nextjs';
+import { useUser } from '@supabase/auth-helpers-react';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import PrintRecords from '../../components/PrintRecords/PrintRecords';
@@ -43,8 +44,12 @@ const fetchAllRecords = async () => {
 };
 
 const All: NextPageWithLayout = () => {
+  const { user, isLoading } = useUser();
+  const { data } = useQuery(['records'], () => fetchAllRecords(), {
+    enabled: !!user && !isLoading,
+  });
+
   const [openDialog, setOpenDialog] = useState(false);
-  const { data } = useQuery(['records'], () => fetchAllRecords());
 
   if (!data) {
     return <div>no data</div>;

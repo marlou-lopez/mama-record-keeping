@@ -1,14 +1,10 @@
-import { supabaseClient, User } from '@supabase/auth-helpers-nextjs';
+import { supabaseClient } from '@supabase/auth-helpers-nextjs';
 import { useUser } from '@supabase/auth-helpers-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { nanoid } from 'nanoid';
-import React, { useContext, useState } from 'react';
+import React, { useId, useState } from 'react';
 import toast from 'react-hot-toast';
 import AmountInputForm from './AmountInputForm';
-import {
-  bottomFormDrawerContext,
-  useBottomFormDrawer,
-} from './BottomFormDrawer';
+import { useBottomFormDrawer } from './BottomFormDrawer';
 import { RecordItem } from './RecordViewItem';
 
 type AmountValueType = {
@@ -55,10 +51,7 @@ const addRecord = async (newRecord: RecordItem) => {
   }
 };
 
-const AddRecordForm: React.FC<AddRecordFormProps> = ({
-  restaurantId,
-  onAdd,
-}) => {
+const AddRecordForm: React.FC<AddRecordFormProps> = ({ restaurantId }) => {
   const { closeDrawer } = useBottomFormDrawer();
   const { user } = useUser();
   const queryClient = useQueryClient();
@@ -120,13 +113,16 @@ const AddRecordForm: React.FC<AddRecordFormProps> = ({
       queryClient.invalidateQueries(['records']);
     },
     onSuccess: () => {
-      toast.success('Record successfully added')
-    }
+      toast.success('Record successfully added');
+    },
   });
+
+  // using useId to avoid hydration mismatch: https://reactjs.org/docs/hooks-reference.html#useid
+  const amountValueId = useId();
   const [dateValue, setDateValue] = useState<string>('');
   const [amountValues, setAmountValues] = useState<AmountValueType[]>([
     {
-      id: nanoid(),
+      id: amountValueId,
       value: 0,
     },
   ]);
