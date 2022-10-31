@@ -19,3 +19,9 @@ functionalities/features that I might add (not sure):
 - better user interface and user experience
   - app animation with framer-motion
   - proper usage of react-query
+
+Todo:
+
+- Add live calculation
+- Ability to add records to multiple restaurant on one form
+- label for each record/transaction

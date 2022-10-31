@@ -2,7 +2,10 @@ import { Dialog } from '@headlessui/react';
 import { supabaseClient } from '@supabase/auth-helpers-nextjs';
 import { useUser } from '@supabase/auth-helpers-react';
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
+import { nanoid } from 'nanoid';
+import React, { useState } from 'react';
+import toast from 'react-hot-toast';
+import DateRangePicker, { DateRange } from '../../components/DateRangePicker';
 import PrintRecords from '../../components/PrintRecords/PrintRecords';
 import { RecordItem } from '../../components/RecordViewItem';
 import Layout from '../../layout/layout';
@@ -15,19 +18,27 @@ export interface FullRecordItemDetails
   };
 }
 
-const fetchAllRecords = async () => {
-  const { data, error } = await supabaseClient
-    .from<FullRecordItemDetails>('records')
-    .select(
-      `
+type FetchAllRecordsParams = {
+  dateRange: DateRange;
+};
+
+const fetchAllRecords = async ({ dateRange }: FetchAllRecordsParams) => {
+  // const { data, error } = await supabaseClient
+  let query = supabaseClient.from<FullRecordItemDetails>('records').select(
+    `
       issued_at,
       id,
       amounts,
       restaurantInfo:restaurants(name)
     `
-    )
-    .order('issued_at', { ascending: true });
+  );
+  if (dateRange[0] && dateRange[1]) {
+    query = query.lte('issued_at', dateRange[1]).gte('issued_at', dateRange[0]);
+  }
 
+  query = query.order('issued_at', { ascending: true });
+
+  const { data, error } = await query;
   if (error) {
     throw new Error(error.message);
   }
@@ -42,18 +53,51 @@ const fetchAllRecords = async () => {
   );
   return formattedRecords;
 };
-
+// TODO: Create separate component for the date form. Also fix it
 const All: NextPageWithLayout = () => {
   const { user, isLoading } = useUser();
-  const { data } = useQuery(['records'], () => fetchAllRecords(), {
-    enabled: !!user && !isLoading,
-  });
+  const [dateRangeValue, setDateRangeValue] = useState<DateRange>([
+    undefined,
+    undefined,
+  ]);
+  const [dateKey, setDateRangeKey] = useState<string>(nanoid());
+
+  const { data, refetch } = useQuery(
+    ['records'],
+    () => fetchAllRecords({ dateRange: dateRangeValue }),
+    {
+      enabled: !!user && !isLoading,
+    }
+  );
 
   const [openDialog, setOpenDialog] = useState(false);
 
   if (!data) {
     return <div>no data</div>;
   }
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    await toast.promise(refetch(), {
+      loading: 'Generating records...',
+      success: 'Records generated!',
+      error: 'Something went wrong',
+    });
+    console.log('test: ', dateRangeValue);
+  };
+
+  const handleClear = async () => {
+    setDateRangeValue([undefined, undefined]);
+    // To create a new date range instance, instead of updating the existing.
+    // Reasoning: DateRangePicker is uncontrolled.
+    setDateRangeKey(nanoid());
+  };
+
+  const isDateRangeComplete =
+    dateRangeValue[0] !== undefined &&
+    dateRangeValue[0] !== '' &&
+    dateRangeValue[1] !== undefined &&
+    dateRangeValue[1] !== '';
 
   return (
     <div>
@@ -66,6 +110,39 @@ const All: NextPageWithLayout = () => {
             Print
           </button>
         </div>
+        <form
+          onSubmit={handleSubmit}
+          className={`flex flex-col z-10 border-gray-50 gap-2 transition-all duration-300 ease-in-out overflow-hidden
+            `}
+        >
+          {/* Change Approach for this form */}
+          <DateRangePicker
+            key={dateKey}
+            value={dateRangeValue}
+            onChange={(date) => {
+              setDateRangeValue(date);
+            }}
+          />
+          {isDateRangeComplete && (
+            <div className="flex flex-col gap-1">
+              <button
+                type={'submit'}
+                disabled={!isDateRangeComplete}
+                className="flex justify-center items-center w-full p-3 border bg-cyan-600 text-white font-semibold text-lg rounded-md"
+              >
+                Generate Records
+              </button>
+              <button
+                type={'button'}
+                disabled={!isDateRangeComplete}
+                className={`border border-gray-400 rounded-md p-2 font-semibold`}
+                onClick={handleClear}
+              >
+                Clear
+              </button>
+            </div>
+          )}
+        </form>
       </div>
       <div className="sm:max-w-2xl mx-auto mt-16">
         {Object.entries(data).map(([key, value]) => {

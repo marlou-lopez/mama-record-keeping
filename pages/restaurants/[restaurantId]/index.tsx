@@ -29,6 +29,7 @@ const getRecords = async ({ restaurantId, dateRange }: GetRecordsParams) => {
     .select('*')
     .eq('restaurant_id', restaurantId);
 
+  // TODO: Fix - if there's end date, get all from the start date
   if (dateRange[0] && dateRange[1]) {
     query = query.lte('issued_at', dateRange[1]).gte('issued_at', dateRange[0]);
   }
